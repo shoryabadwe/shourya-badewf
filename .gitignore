@@ -1,0 +1,32 @@
+# Maven & Java Build Artifacts
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# File-based H2 Database Storage (Local Runtime Data)
+data/
+*.db
+*.mv.db
+*.trace.db
+
+# IDE & OS Files
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.DS_Store
+Thumbs.db
+
+# Environment & Logs
+.env
+*.log
+
+# AI Studio Preview Helpers
+node_modules/
+dist/
+server.js

@@ -1,0 +1,6 @@
+{
+  "name": "TECHPULSE — Discover. Participate. Achieve.",
+  "description": "Full Stack Java Spring Boot & H2 college mini project (Course 2113611) for discovering technology events, managing bookmarks with schedule conflict detection, and tracking participation credits and competition win rates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

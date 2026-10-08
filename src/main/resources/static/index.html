@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="bright">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TECHPULSE — Discover. Participate. Achieve.</title>
+    <meta name="description" content="Full Stack Java Spring Boot & H2 college mini project (Course 2113611) for discovering technology events, managing bookmarks with schedule conflict detection, and tracking participation credits and competition win rates." />
+    <meta property="og:title" content="TECHPULSE — Discover. Participate. Achieve." />
+    <meta property="og:description" content="Student technology event discovery, schedule conflict detection, and participation achievement tracker built with Java Spring Boot, H2, HTML5, CSS3, and Vanilla JS." />
+    <meta property="og:type" content="website" />
+    <!-- Google Fonts: IBM Plex Mono for headings/dates/metrics/buttons & Plus Jakarta Sans for readable prose -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Top Navigation Bar (Strict 3-Zone Contract: Brand Wordmark | Navigation Links | Primary Actions) -->
+    <header class="top-header" role="banner">
+        <div class="header-inner">
+            <!-- Zone 1: Single text element wordmark -->
+            <a href="#explore" class="brand-wordmark" id="brand-link">TECHPULSE</a>
+
+            <!-- Zone 2: Primary Navigation Links -->
+            <nav class="primary-nav" aria-label="Main Navigation">
+                <a href="#explore" class="nav-link active" data-nav="explore">Explore Events</a>
+                <a href="#saved" class="nav-link" data-nav="saved">My Saved Events</a>
+                <a href="#activity" class="nav-link" data-nav="activity">My Activity</a>
+                <a href="#admin" class="nav-link" data-nav="admin" id="nav-admin-link">Admin Dashboard</a>
+            </nav>
+
+            <!-- Zone 3: Theme Toggle & Account Controls -->
+            <div class="header-actions">
+                <button type="button" class="btn-icon-text" id="theme-toggle-btn" aria-label="Switch color theme">
+                    <span id="theme-icon-container" aria-hidden="true"></span>
+                    <span id="theme-label-text">Night</span>
+                </button>
+                <div id="auth-header-controls" class="auth-controls">
+                    <a href="#auth" class="btn btn-primary btn-sm" id="header-login-btn">Login / Register</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Toast Notification Region -->
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+    <!-- Confirmation Dialog Modal for Destructive Actions -->
+    <div id="confirm-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-panel">
+            <h2 id="confirm-modal-title" class="modal-title">Confirm Action</h2>
+            <p id="confirm-modal-message" class="modal-body-text"></p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="confirm-modal-cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-modal-proceed">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace Viewport -->
+    <main id="main-content" class="main-container" tabindex="-1">
+
+        <!-- ==================================================================
+             VIEW 1: EXPLORE EVENTS
+             ================================================================== -->
+        <section id="view-explore" class="view-section active" aria-labelledby="explore-heading">
+            <div class="section-header-bar">
+                <div>
+                    <p class="section-kicker">DISCOVER · PARTICIPATE · ACHIEVE · ASIA/KOLKATA (IST)</p>
+                    <h1 id="explore-heading" class="section-title">Upcoming Technology Events</h1>
+                    <p class="section-subtitle">
+                        Curated and imported engineering hackathons, workshops, conferences, webinars, and competitions.
+                        Default discovery window shows events starting in the next 30 days calculated on the Java server.
+                    </p>
+                </div>
+                <div class="window-meta-box" id="server-window-box">
+                    <div class="meta-label">Active Server Window (IST)</div>
+                    <div class="meta-value tabular-nums" id="server-window-range">Loading window...</div>
+                </div>
+            </div>
+
+            <!-- Live Source & Dataset Transparency Strip -->
+            <div class="source-status-strip" id="explore-source-strip" role="region" aria-label="Data Source Status">
+                <div class="source-strip-left">
+                    <span class="status-dot" id="source-status-dot" aria-hidden="true"></span>
+                    <div>
+                        <div class="source-strip-title">
+                            <span id="source-status-headline">Checking event data source...</span>
+                            <span class="meta-separator" aria-hidden="true">·</span>
+                            <span id="source-last-sync" class="tabular-nums">Last sync: Not yet run</span>
+                        </div>
+                        <p class="source-strip-desc" id="source-status-detail">
+                            Events are clearly labelled as Demonstration Dataset, Manual Admin Entry, or Live Imported Source.
+                        </p>
+                    </div>
+                </div>
+                <div class="source-strip-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-source">
+                        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                            <path d="M16 16h5v5"/>
+                        </svg>
+                        <span>Refresh Source</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search and Multi-Filter Control Grid -->
+            <form id="explore-filter-form" class="filter-panel" aria-label="Filter and search technology events">
+                <div class="filter-row-top">
+                    <div class="form-group search-group">
+                        <label for="filter-search" class="form-label">Search by Event Name, Topic, or Organiser</label>
+                        <div class="input-with-icon">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="search" id="filter-search" class="form-input" placeholder="e.g. Spring Boot, IIT Bombay, Cybersecurity, Hackathon..." />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-date-window" class="form-label">Date Window (IST)</label>
+                        <select id="filter-date-window" class="form-select">
+                            <option value="TODAY">Today</option>
+                            <option value="THIS_WEEKEND">This Weekend (Sat–Sun)</option>
+                            <option value="NEXT_7_DAYS">Next 7 Days</option>
+                            <option value="NEXT_30_DAYS" selected>Next 30 Days (Default)</option>
+                            <option value="ALL_UPCOMING">All Upcoming (365 Days)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-sort" class="form-label">Sort Order</label>
+                        <select id="filter-sort" class="form-select">
+                            <option value="SOONEST" selected>Soonest First</option>
+                            <option value="RECENTLY_ADDED">Recently Added</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-row-bottom">
+                    <div class="form-group">
+                        <label for="filter-city" class="form-label">City / Location</label>
+                        <select id="filter-city" class="form-select">
+                            <option value="ALL">All Locations</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Navi Mumbai">Navi Mumbai</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Bengaluru">Bengaluru</option>
+                            <option value="Online">Online Events</option>
+                            <option value="OTHER">Other Cities</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-topic" class="form-label">Topic</label>
+                        <select id="filter-topic" class="form-select">
+                            <option value="ALL">All Topics</option>
+                            <option value="AI/ML">AI/ML</option>
+                            <option value="Java">Java</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-type" class="form-label">Event Type</label>
+                        <select id="filter-type" class="form-select">
+                            <option value="ALL">All Types</option>
+                            <option value="HACKATHON">Hackathon</option>
+                            <option value="WORKSHOP">Workshop</option>
+                            <option value="CONFERENCE">Conference</option>
+                            <option value="WEBINAR">Webinar</option>
+                            <option value="COMPETITION">Competition</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-mode" class="form-label">Mode</label>
+                        <select id="filter-mode" class="form-select">
+                            <option value="ALL">All Modes</option>
+                            <option value="ONLINE">Online</option>
+                            <option value="OFFLINE">Offline</option>
+                            <option value="HYBRID">Hybrid</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-cost" class="form-label">Cost</label>
+                        <select id="filter-cost" class="form-select">
+                            <option value="ALL">All Cost Types</option>
+                            <option value="FREE">Free Only</option>
+                            <option value="PAID">Paid Only</option>
+                            <option value="NOT_PROVIDED">Price Not Provided</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-max-price" class="form-label">Max Price (₹ INR)</label>
+                        <input type="number" id="filter-max-price" class="form-input tabular-nums" min="0" step="50" placeholder="No limit" />
+                    </div>
+
+                    <div class="form-group filter-buttons-group">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <button type="button" id="btn-reset-filters" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Results Bar -->
+            <div class="results-summary-bar">
+                <div id="explore-results-count" class="results-count tabular-nums">Loading events...</div>
+                <div class="results-legend">
+                    <span>Note: Unknown prices are explicitly shown as <strong>Price not provided</strong> and never treated as free.</span>
+                </div>
+            </div>
+
+            <!-- Event Cards Grid Container -->
+            <div id="explore-events-container" class="events-grid" aria-live="polite"></div>
+
+            <!-- Pagination Controls -->
+            <div id="explore-pagination" class="pagination-bar"></div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 2: EVENT DETAILS
+             ================================================================== -->
+        <section id="view-details" class="view-section hidden" aria-labelledby="details-heading">
+            <div class="breadcrumb-bar">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-back-to-explore">
+                    &larr; Back to Events
+                </button>
+            </div>
+            <div id="event-details-container" class="details-panel"></div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 3: MY SAVED EVENTS & SCHEDULE CONFLICTS
+             ================================================================== -->
+        <section id="view-saved" class="view-section hidden" aria-labelledby="saved-heading">
+            <div class="section-header-bar">
+                <div>
+                    <p class="section-kicker">BOOKMARKS · INTERVAL OVERLAP CHECKER</p>
+                    <h1 id="saved-heading" class="section-title">My Saved Events</h1>
+                    <p class="section-subtitle">
+                        Events saved to your account persist in the H2 relational database across logouts and server restarts.
+                        Both upcoming and past saved events remain accessible here.
+                    </p>
+                </div>
+            </div>
+
+            <div id="saved-conflicts-banner" class="conflicts-container"></div>
+
+            <div class="saved-subsection">
+                <h2 class="subsection-title">Upcoming Saved Events</h2>
+                <div id="saved-upcoming-container" class="events-grid"></div>
+            </div>
+
+            <div class="saved-subsection">
+                <h2 class="subsection-title">Past Saved Events Archive</h2>
+                <div id="saved-past-container" class="events-grid"></div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 4: MY ACTIVITY AND ACHIEVEMENTS
+             ================================================================== -->
+        <section id="view-activity" class="view-section hidden" aria-labelledby="activity-heading">
+            <div class="section-header-bar">
+                <div>
+                    <p class="section-kicker">PARTICIPATION CREDITS · COMPETITION WIN RATE · ENGAGEMENT BADGES</p>
+                    <h1 id="activity-heading" class="section-title">My Activity &amp; Achievements</h1>
+                    <p class="section-subtitle">
+                        Track your progression from Saved (0 credits) &rarr; Registered (5 credits) &rarr; Attended (20 total credits)
+                        &rarr; Won a Hackathon/Competition (50 total credits). Credits are non-cumulative per event.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Engagement Badge & Progress Bar -->
+            <div id="activity-badge-panel" class="badge-overview-panel"></div>
+
+            <!-- 8-Metric Dashboard Grid -->
+            <div id="activity-stats-grid" class="stats-grid"></div>
+
+            <!-- Self-Reporting & Credit Rules Explanation Box -->
+            <div class="rules-explainer-panel">
+                <div class="rules-col">
+                    <h3 class="rules-heading">Non-Cumulative Event Credit Rules</h3>
+                    <p class="rules-text">
+                        Saved: <strong class="tabular-nums">0</strong> credits ·
+                        Registered: <strong class="tabular-nums">5</strong> credits ·
+                        Attended: <strong class="tabular-nums">20</strong> total credits ·
+                        Won Competition/Hackathon: <strong class="tabular-nums">50</strong> total credits.
+                        Updating an event from Registered to Attended sets its contribution to 20 (not 25). Repeated updates never duplicate credits.
+                    </p>
+                </div>
+                <div class="rules-col">
+                    <h3 class="rules-heading">Competition Win-Rate Formula &amp; Verification</h3>
+                    <p class="rules-text">
+                        <strong>Win Rate = Wins &divide; Completed Competitions (Attended + Won/Not Won outcome) &times; 100.</strong>
+                        Workshops, conferences, webinars, registrations, and pending outcomes are excluded.
+                        User entries are labelled <strong>Self-Reported</strong> until marked <strong>Admin Verified</strong> by faculty.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Activity History Table -->
+            <div class="table-panel">
+                <div class="table-panel-header">
+                    <h2 class="subsection-title">Participation &amp; Achievement Ledger</h2>
+                </div>
+                <div id="activity-history-table-wrapper" class="table-responsive"></div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 5: LOGIN AND REGISTER
+             ================================================================== -->
+        <section id="view-auth" class="view-section hidden" aria-labelledby="auth-heading">
+            <div class="section-header-bar">
+                <div>
+                    <p class="section-kicker">SPRING SECURITY · BCRYPT PASSWORD HASHING · SERVER SESSIONS</p>
+                    <h1 id="auth-heading" class="section-title">Account Access</h1>
+                    <p class="section-subtitle">
+                        Sign in to bookmark events, detect schedule clashes, and record self-reported participation.
+                        Passwords are hashed with BCrypt on the backend and never stored in browser storage.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Development Demo Account Quick-Fill Strip -->
+            <div class="demo-credentials-panel">
+                <div>
+                    <div class="demo-panel-title">Development-Only Demo Accounts (For Lab &amp; Viva Evaluation)</div>
+                    <p class="demo-panel-desc">
+                        Click below to populate the login form with pre-seeded development credentials, then click Sign In.
+                    </p>
+                </div>
+                <div class="demo-panel-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-fill-student-demo">
+                        Fill Student Demo (student@techpulse.edu.in)
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-fill-admin-demo">
+                        Fill Admin Demo (admin@techpulse.edu.in)
+                    </button>
+                </div>
+            </div>
+
+            <div class="auth-grid">
+                <!-- Login Card -->
+                <div class="form-card">
+                    <h2 class="card-form-title">Sign In to Existing Account</h2>
+                    <form id="login-form" novalidate>
+                        <div class="form-group">
+                            <label for="login-email" class="form-label">College / Institutional Email</label>
+                            <input type="email" id="login-email" class="form-input" required placeholder="student@techpulse.edu.in" autocomplete="username" />
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password" class="form-label">Password</label>
+                            <input type="password" id="login-password" class="form-input" required placeholder="Enter password" autocomplete="current-password" />
+                        </div>
+                        <div id="login-error-msg" class="form-error hidden" role="alert"></div>
+                        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                    </form>
+                </div>
+
+                <!-- Register Card -->
+                <div class="form-card">
+                    <h2 class="card-form-title">Register New Student Account</h2>
+                    <form id="register-form" novalidate>
+                        <div class="form-group">
+                            <label for="reg-fullname" class="form-label">Full Name</label>
+                            <input type="text" id="reg-fullname" class="form-input" required minlength="2" maxlength="120" placeholder="e.g. Rohan Sharma" autocomplete="name" />
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email" class="form-label">Email Address</label>
+                            <input type="email" id="reg-email" class="form-input" required placeholder="rohan.sharma@college.edu.in" autocomplete="email" />
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-college" class="form-label">College / Institution</label>
+                            <input type="text" id="reg-college" class="form-input" maxlength="160" placeholder="e.g. VJTI Mumbai / FCRIT Navi Mumbai" autocomplete="organization" />
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password" class="form-label">Password (minimum 8 characters)</label>
+                            <input type="password" id="reg-password" class="form-input" required minlength="8" placeholder="At least 8 characters" autocomplete="new-password" />
+                        </div>
+                        <div id="register-error-msg" class="form-error hidden" role="alert"></div>
+                        <button type="submit" class="btn btn-primary btn-full">Create Student Account</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 6: ADMIN DASHBOARD
+             ================================================================== -->
+        <section id="view-admin" class="view-section hidden" aria-labelledby="admin-heading">
+            <div class="section-header-bar">
+                <div>
+                    <p class="section-kicker">ROLE_ADMIN ENFORCED · EVENT MANAGEMENT · PARTICIPATION VERIFICATION</p>
+                    <h1 id="admin-heading" class="section-title">Administrator Console</h1>
+                    <p class="section-subtitle">
+                        Add, edit, cancel, or soft-delete events, monitor external live-source synchronization, and verify student participation records.
+                    </p>
+                </div>
+            </div>
+
+            <div id="admin-unauthorized-box" class="empty-state-panel hidden">
+                <h2 class="subsection-title">Administrator Role Required</h2>
+                <p class="section-subtitle">
+                    Backend endpoints under <code>/api/admin/**</code> require <code>ROLE_ADMIN</code>.
+                    Please sign in with the Administrator account (<code>admin@techpulse.edu.in</code> / <code>Admin@123</code>) to perform administrative actions.
+                </p>
+                <div class="mt-md">
+                    <a href="#auth" class="btn btn-primary">Go to Login &amp; Switch to Admin</a>
+                </div>
+            </div>
+
+            <div id="admin-authorized-content" class="hidden">
+                <!-- Live Source Status & Refresh Card -->
+                <div class="admin-panel mb-lg">
+                    <div class="admin-panel-header">
+                        <h2 class="subsection-title">Live Event Source Adapter Status</h2>
+                        <button type="button" class="btn btn-secondary btn-sm" id="admin-btn-refresh-source">
+                            Trigger Live Source Refresh
+                        </button>
+                    </div>
+                    <div id="admin-source-status-box" class="admin-source-details"></div>
+                </div>
+
+                <!-- Create / Edit Event Form -->
+                <div class="admin-panel mb-lg">
+                    <div class="admin-panel-header">
+                        <h2 class="subsection-title" id="admin-form-heading">Add New Technology Event</h2>
+                        <button type="button" class="btn btn-secondary btn-sm hidden" id="admin-btn-cancel-edit">
+                            Cancel Editing
+                        </button>
+                    </div>
+                    <form id="admin-event-form" class="admin-event-form" novalidate>
+                        <input type="hidden" id="admin-event-id" value="" />
+                        <div class="admin-form-grid">
+                            <div class="form-group span-2">
+                                <label for="admin-title" class="form-label">Event Title *</label>
+                                <input type="text" id="admin-title" class="form-input" required maxlength="220" placeholder="e.g. All-India Java & Cloud Microservices Symposium" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-organizer" class="form-label">Organiser *</label>
+                                <input type="text" id="admin-organizer" class="form-input" required maxlength="160" placeholder="e.g. CSI Mumbai Chapter" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-topic" class="form-label">Topic *</label>
+                                <select id="admin-topic" class="form-select" required>
+                                    <option value="Java">Java</option>
+                                    <option value="AI/ML">AI/ML</option>
+                                    <option value="Cybersecurity">Cybersecurity</option>
+                                    <option value="Web Development">Web Development</option>
+                                    <option value="Data Science">Data Science</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-type" class="form-label">Event Type *</label>
+                                <select id="admin-type" class="form-select" required>
+                                    <option value="HACKATHON">Hackathon (Competitive)</option>
+                                    <option value="COMPETITION">Competition (Competitive)</option>
+                                    <option value="WORKSHOP">Workshop</option>
+                                    <option value="CONFERENCE">Conference</option>
+                                    <option value="WEBINAR">Webinar</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-mode" class="form-label">Delivery Mode *</label>
+                                <select id="admin-mode" class="form-select" required>
+                                    <option value="OFFLINE">Offline</option>
+                                    <option value="ONLINE">Online</option>
+                                    <option value="HYBRID">Hybrid</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-city" class="form-label">City or "Online" *</label>
+                                <input type="text" id="admin-city" class="form-input" required maxlength="100" placeholder="e.g. Mumbai, Navi Mumbai, Pune, Online" />
+                            </div>
+
+                            <div class="form-group span-2">
+                                <label for="admin-venue" class="form-label">Venue Address or Online Platform Details</label>
+                                <input type="text" id="admin-venue" class="form-input" maxlength="300" placeholder="e.g. Victor Menezes Convention Centre, IIT Bombay or Zoom Webinar" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-start" class="form-label">Start Date &amp; Time (IST) *</label>
+                                <input type="datetime-local" id="admin-start" class="form-input tabular-nums" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-end" class="form-label">End Date &amp; Time (IST)</label>
+                                <input type="datetime-local" id="admin-end" class="form-input tabular-nums" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-deadline" class="form-label">Registration Deadline (IST)</label>
+                                <input type="datetime-local" id="admin-deadline" class="form-input tabular-nums" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-cost-type" class="form-label">Cost Classification *</label>
+                                <select id="admin-cost-type" class="form-select" required>
+                                    <option value="FREE">Free</option>
+                                    <option value="PAID">Paid</option>
+                                    <option value="NOT_PROVIDED">Price Not Provided</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-price" class="form-label">Price Amount (INR ₹)</label>
+                                <input type="number" id="admin-price" class="form-input tabular-nums" min="0" step="0.01" placeholder="0.00" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-eligibility" class="form-label">Eligibility Criteria</label>
+                                <input type="text" id="admin-eligibility" class="form-input" maxlength="250" placeholder="e.g. B.E./B.Tech students with valid ID" />
+                            </div>
+
+                            <div class="form-group span-2">
+                                <label for="admin-reg-url" class="form-label">Official Registration URL (http:// or https://)</label>
+                                <input type="url" id="admin-reg-url" class="form-input" maxlength="500" placeholder="https://example.org/register" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="admin-cancelled" />
+                                    <span>Mark Event as Cancelled</span>
+                                </label>
+                                <label class="checkbox-label mt-xs">
+                                    <input type="checkbox" id="admin-reg-closed" />
+                                    <span>Mark Registration Closed</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group span-3">
+                                <label for="admin-description" class="form-label">Full Event Description *</label>
+                                <textarea id="admin-description" class="form-textarea" rows="3" required maxlength="3000" placeholder="Detailed agenda, problem statements, prerequisites, and speaker information..."></textarea>
+                            </div>
+                        </div>
+
+                        <div id="admin-form-error" class="form-error hidden" role="alert"></div>
+
+                        <div class="form-actions-row">
+                            <button type="submit" class="btn btn-primary" id="admin-submit-btn">Save Event to Database</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Manage Events Table -->
+                <div class="table-panel mb-lg">
+                    <div class="table-panel-header">
+                        <div>
+                            <h2 class="subsection-title">Manage Events Catalog</h2>
+                            <p class="table-subtext">
+                                Soft-deletion policy: Deleting an event removes it from public discovery while preserving student bookmarks and participation history.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="admin-events-table-wrapper" class="table-responsive"></div>
+                </div>
+
+                <!-- Verify Student Participations Table -->
+                <div class="table-panel">
+                    <div class="table-panel-header">
+                        <div>
+                            <h2 class="subsection-title">Verify or Correct Student Participation Records</h2>
+                            <p class="table-subtext">
+                                Review self-reported student submissions, verify attendance/competition outcomes, or adjust statuses.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="admin-participations-table-wrapper" class="table-responsive"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Quiet Academic Project Footer -->
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+            <div>
+                <strong>TECHPULSE — Discover. Participate. Achieve.</strong>
+                <span class="meta-separator">·</span>
+                <span>Full Stack Java Programming (Course Code: 2113611)</span>
+            </div>
+            <div>
+                <span>Java 17 · Spring Boot 3.2.5 · Spring Data JPA · H2 File Database · Vanilla HTML5/CSS3/JS</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
